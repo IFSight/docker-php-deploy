@@ -1,4 +1,4 @@
-FROM fulcrum/php5.6-remi-ssh
+FROM fulcrum/php-ssh
 MAINTAINER IF Fulcrum "fulcrum@ifsight.net"
 
 # install mysqldump from mariadb and pv

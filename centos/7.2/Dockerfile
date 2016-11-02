@@ -4,7 +4,7 @@ MAINTAINER IF Fulcrum "fulcrum@ifsight.net"
 # install mysqldump from mariadb and pv
 RUN rpm --rebuilddb && \
     yum --noplugins install -y mariadb pv unzip && \
-    yum --noplugins install -y https://rpm.nodesource.com/pub_0.12/el/7/x86_64/nodejs-0.12.9-1nodesource.el7.centos.x86_64.rpm https://rpm.nodesource.com/pub_0.12/el/7/x86_64/nodejs-devel-0.12.9-1nodesource.el7.centos.x86_64.rpm && \
+    yum --noplugins install -y nodejs nodejs-devel && \
     yum --noplugins upgrade -y && \
     package-cleanup --dupes && \
     package-cleanup --cleandupes && \

@@ -1,6 +1,8 @@
 FROM fulcrum/php-ssh
 MAINTAINER IF Fulcrum "fulcrum@ifsight.net"
 
+ADD dbclone.sh /usr/local/bin/dbclone.sh
+
 # install mysqldump from mariadb and pv
 RUN rpm --rebuilddb && \
     yum --noplugins install -y mariadb pv unzip && \

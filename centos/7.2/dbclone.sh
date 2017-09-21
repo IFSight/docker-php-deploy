@@ -17,14 +17,29 @@ SRC_DB_NAME=$6
 SRC_DB_USER=$7
 SRC_DB_PWD=$8
 
+TABLEEXP="sessions|watchdog|search|cache|migrate|purge_queuer_url"
+
 mkfifo $FIFO &&
-mysqldump -h $DST_DB_HOST -u $DST_DB_USER -p"$DST_DB_PWD" --add-drop-table --no-data $DST_DB_NAME |
-grep -e '^DROP \| FOREIGN_KEY_CHECKS' |
-mysql -h $DST_DB_HOST -u $DST_DB_USER -p"$DST_DB_PWD" $DST_DB_NAME &&
+
+stdbuf -o0 echo "Truncating tables" &&
+stdbuf -o0 mysqldump -h $DST_DB_HOST -u $DST_DB_USER -p"$DST_DB_PWD" --add-drop-table --no-data $DST_DB_NAME |
+egrep "$TABLEEXP" |
+grep --line-buffered -e '^DROP ' |
+sed 's/DROP TABLE IF EXISTS/TRUNCATE TABLE/g' |
+stdbuf -o0 mysql -h $DST_DB_HOST -u $DST_DB_USER -p"$DST_DB_PWD" $DST_DB_NAME &&
+
+stdbuf -o0 echo "Dropping existing tables" &&
+stdbuf -o0 mysqldump -h $DST_DB_HOST -u $DST_DB_USER -p"$DST_DB_PWD" --add-drop-table --no-data $DST_DB_NAME |
+egrep -v "$TABLEEXP" |
+grep --line-buffered -e '^DROP \| FOREIGN_KEY_CHECKS' |
+stdbuf -o0 mysql -h $DST_DB_HOST -u $DST_DB_USER -p"$DST_DB_PWD" $DST_DB_NAME &&
+
+stdbuf -o0 echo "Cloning back database" &&
 (
-  mysqldump --max-allowed-packet=16M -h $SRC_DB_HOST -u $SRC_DB_USER -p"$SRC_DB_PWD" $SRC_DB_NAME 2> $FIFO |
-  pv --numeric --timer --interval 10                                                              2> $FIFO |
-  mysql     --max-allowed-packet=16M -h $DST_DB_HOST -u $DST_DB_USER -p"$DST_DB_PWD" $DST_DB_NAME 2> $FIFO &
+  stdbuf -o0 mysqldump --max-allowed-packet=16M -h $SRC_DB_HOST -u $SRC_DB_USER -p"$SRC_DB_PWD" $SRC_DB_NAME 2> $FIFO |
+  pv --numeric --timer --interval 5                                                                          2> $FIFO |
+  stdbuf -o0 mysql     --max-allowed-packet=16M -h $DST_DB_HOST -u $DST_DB_USER -p"$DST_DB_PWD" $DST_DB_NAME 2> $FIFO &
 ) &&
 cat < $FIFO &&
+
 rm $FIFO

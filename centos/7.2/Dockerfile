@@ -4,8 +4,7 @@ MAINTAINER IF Fulcrum "fulcrum@ifsight.net"
 ADD dbclone.sh /usr/local/bin/dbclone.sh
 
 # Enable EPEL Repos, update, install PHP 5.6, postdrop correct perms, add the user
-RUN echo "Cache bust PHP 5.6.37" && \
-    rpm --rebuilddb && \
+RUN rpm --rebuilddb && \
     yum --noplugins install -y \
         https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm \
         http://rpms.remirepo.net/enterprise/remi-release-7.rpm && \
